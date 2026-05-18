@@ -7,71 +7,73 @@ import (
 )
 
 func formatStylish(nodes []DiffNode, depth int) string {
-	indent := strings.Repeat("    ", depth-1)
+	var builder strings.Builder
+	builder.WriteString("{\n")
 
-	var formatValue func(interface{}, int) string
-	formatValue = func(val interface{}, lvl int) string {
-		switch v := val.(type) {
-		case map[string]interface{}:
-			if len(v) == 0 {
-				return "{}"
-			}
-
-			lines := []string{"{"}
-			keys := make([]string, 0, len(v))
-			for k := range v {
-				keys = append(keys, k)
-			}
-			sort.Strings(keys)
-
-			for _, k := range keys {
-				lines = append(lines, fmt.Sprintf(
-					"%s    %s: %s",
-					strings.Repeat("    ", lvl),
-					k,
-					formatValue(v[k], lvl+1),
-				))
-			}
-
-			lines = append(lines, fmt.Sprintf("%s}", strings.Repeat("    ", lvl-1)))
-			return strings.Join(lines, "\n")
-		case nil:
-			return "<nil>"
-		default:
-			return fmt.Sprintf("%v", v)
-		}
-	}
-
-	lines := []string{"{"}
+	// Базовый отступ для текущего уровня (4 пробела на глубину)
+	// Знаки +/- ставятся на 2 пробела левее основного отступа ключа
+	indentSize := depth * 4
+	prefix := strings.Repeat(" ", indentSize-2)
+	bracketIndent := strings.Repeat(" ", indentSize-4)
 
 	for _, node := range nodes {
 		switch node.Status {
 		case "nested":
-			lines = append(lines, fmt.Sprintf("%s    %s: %s",
-				indent, node.Key, formatStylish(node.Children, depth+1),
-			))
+			// Для вложенных узлов используем "  " (два пробела) после префикса, чтобы ключ стоял ровно
+			builder.WriteString(fmt.Sprintf("%s  %s: %s\n", prefix, node.Key, formatStylish(node.Children, depth+1)))
 		case "unchanged":
-			lines = append(lines, fmt.Sprintf("%s    %s: %s",
-				indent, node.Key, formatValue(node.Value, depth+1),
-			))
+			builder.WriteString(fmt.Sprintf("%s  %s: %s\n", prefix, node.Key, formatValue(node.Value, depth+1)))
 		case "added":
-			lines = append(lines, fmt.Sprintf("%s  + %s: %s",
-				indent, node.Key, formatValue(node.Value, depth+1),
-			))
+			builder.WriteString(fmt.Sprintf("%s+ %s: %s\n", prefix, node.Key, formatValue(node.Value, depth+1)))
 		case "removed":
-			lines = append(lines, fmt.Sprintf("%s  - %s: %s",
-				indent, node.Key, formatValue(node.Value, depth+1),
-			))
+			builder.WriteString(fmt.Sprintf("%s- %s: %s\n", prefix, node.Key, formatValue(node.Value, depth+1)))
 		case "changed":
-			lines = append(lines, fmt.Sprintf("%s  - %s: %s",
-				indent, node.Key, formatValue(node.OldValue, depth+1),
-			))
-			lines = append(lines, fmt.Sprintf("%s  + %s: %s",
-				indent, node.Key, formatValue(node.NewValue, depth+1),
-			))
+			builder.WriteString(fmt.Sprintf("%s- %s: %s\n", prefix, node.Key, formatValue(node.OldValue, depth+1)))
+			builder.WriteString(fmt.Sprintf("%s+ %s: %s\n", prefix, node.Key, formatValue(node.NewValue, depth+1)))
 		}
 	}
 
-	lines = append(lines, fmt.Sprintf("%s}", strings.Repeat("    ", depth-1)))
-	return strings.Join(lines, "\n")
+	builder.WriteString(bracketIndent + "}")
+	return builder.String()
+}
+
+func formatValue(v interface{}, depth int) string {
+	switch val := v.(type) {
+	case map[string]interface{}:
+		if len(val) == 0 {
+			return "{}"
+		}
+		keys := make([]string, 0, len(val))
+		for k := range val {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+
+		indentSize := depth * 4
+		currentIndent := strings.Repeat(" ", indentSize)
+		bracketIndent := strings.Repeat(" ", indentSize-4)
+
+		var builder strings.Builder
+		builder.WriteString("{\n")
+		for _, k := range keys {
+			builder.WriteString(fmt.Sprintf("%s%s: %s\n", currentIndent, k, formatValue(val[k], depth+1)))
+		}
+		builder.WriteString(bracketIndent + "}")
+		return builder.String()
+
+	case nil:
+		// ИЗМЕНЕНИЕ 1: Возвращаем <nil>, как просит тест
+		return "<nil>"
+
+	case string:
+		// ИЗМЕНЕНИЕ 2: Чтобы избежать проблем с невидимыми пробелами,
+		// убеждаемся, что пустая строка выводится без лишних символов.
+		if val == "" {
+			return ""
+		}
+		return val
+
+	default:
+		return fmt.Sprintf("%v", val)
+	}
 }

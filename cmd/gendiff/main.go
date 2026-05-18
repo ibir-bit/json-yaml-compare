@@ -1,58 +1,63 @@
-package main
+package gendiff
 
 import (
 	"fmt"
-	"log"
-	"os"
-
-	"code/pkg/gendiff"
-	"code/pkg/parser"
-
-	"github.com/urfave/cli/v2"
+	"sort"
+	"strings"
 )
 
-func main() {
-	app := &cli.App{
-		Name:  "gendiff",
-		Usage: "Compares two configuration files and shows a difference.",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "format",
-				Aliases: []string{"f"},
-				Value:   "stylish", // формат по умолчанию
-				Usage:   "output format",
-			},
-		},
-		Action: func(c *cli.Context) error {
-			if c.NArg() != 2 {
-				return cli.Exit("Error: two file paths are required", 1)
-			}
+// formatStylish возвращает diff в стиле stylish
+func formatStylish(nodes []DiffNode, depth int) string {
+	indent := strings.Repeat("    ", depth-1) // 4 пробела на уровень
 
-			file1 := c.Args().Get(0)
-			file2 := c.Args().Get(1)
+	var builder strings.Builder
+	builder.WriteString("{\n")
 
-			// Чтение и парсинг файлов
-			data1, err := parser.ReadFile(file1)
-			if err != nil {
-				return cli.Exit(fmt.Sprintf("Failed to parse %s: %v", file1, err), 1)
-			}
-
-			data2, err := parser.ReadFile(file2)
-			if err != nil {
-				return cli.Exit(fmt.Sprintf("Failed to parse %s: %v", file2, err), 1)
-			}
-
-			// Генерация рекурсивного diff с форматером stylish по умолчанию
-			diff := gendiff.GenDiffRecursive(data1, data2)
-
-			// Вывод результата
-			fmt.Println(diff)
-
-			return nil
-		},
+	for _, node := range nodes {
+		switch node.Status {
+		case "nested":
+			builder.WriteString(fmt.Sprintf("%s    %s: %s\n", indent, node.Key, formatStylish(node.Children, depth+1)))
+		case "unchanged":
+			builder.WriteString(fmt.Sprintf("%s    %s: %s\n", indent, node.Key, formatValue(node.Value, depth+1)))
+		case "added":
+			builder.WriteString(fmt.Sprintf("%s  + %s: %s\n", indent, node.Key, formatValue(node.Value, depth+1)))
+		case "removed":
+			builder.WriteString(fmt.Sprintf("%s  - %s: %s\n", indent, node.Key, formatValue(node.Value, depth+1)))
+		case "changed":
+			builder.WriteString(fmt.Sprintf("%s  - %s: %s\n", indent, node.Key, formatValue(node.OldValue, depth+1)))
+			builder.WriteString(fmt.Sprintf("%s  + %s: %s\n", indent, node.Key, formatValue(node.NewValue, depth+1)))
+		}
 	}
 
-	if err := app.Run(os.Args); err != nil {
-		log.Fatal(err)
+	builder.WriteString(indent + "}") // закрывающая скобка на уровне открытия
+	return builder.String()
+}
+
+// formatValue форматирует значение (включая map) с правильными отступами
+func formatValue(v interface{}, depth int) string {
+	switch val := v.(type) {
+	case map[string]interface{}:
+		if len(val) == 0 {
+			return "{}"
+		}
+
+		keys := make([]string, 0, len(val))
+		for k := range val {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+
+		indent := strings.Repeat("    ", depth)
+		var builder strings.Builder
+		builder.WriteString("{\n")
+		for _, k := range keys {
+			builder.WriteString(fmt.Sprintf("%s    %s: %s\n", indent, k, formatValue(val[k], depth+1)))
+		}
+		builder.WriteString(indent + "}")
+		return builder.String()
+	case nil:
+		return "<nil>"
+	default:
+		return fmt.Sprintf("%v", val)
 	}
 }
