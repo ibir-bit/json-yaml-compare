@@ -1,17 +1,15 @@
 run:
-  tests: true
   timeout: 5m
   modules-download-mode: mod
 
 linters:
+  disable-all: true
   enable:
     - govet
     - errcheck
     - staticcheck
     - gosimple
     - unused
-  disable:
-    - typecheck
 
 issues:
   exclude-use-default: false
