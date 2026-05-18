@@ -1,4 +1,4 @@
-package gendiff
+package formatters
 
 import (
 	"fmt"
@@ -19,17 +19,17 @@ func FormatStylish(nodes []DiffNode, depth int) string {
 		case "nested":
 			builder.WriteString(fmt.Sprintf("%s  %s: %s\n", prefix, node.Key, FormatStylish(node.Children, depth+1)))
 		case "unchanged":
-			val := formatValue(node.Value, depth+1)
+			val := formatValueStylish(node.Value, depth+1)
 			builder.WriteString(fmt.Sprintf("%s  %s: %s\n", prefix, node.Key, val))
 		case "added":
-			val := formatValue(node.Value, depth+1)
+			val := formatValueStylish(node.Value, depth+1)
 			builder.WriteString(fmt.Sprintf("%s+ %s: %s\n", prefix, node.Key, val))
 		case "removed":
-			val := formatValue(node.Value, depth+1)
+			val := formatValueStylish(node.Value, depth+1)
 			builder.WriteString(fmt.Sprintf("%s- %s: %s\n", prefix, node.Key, val))
 		case "changed":
-			oldVal := formatValue(node.OldValue, depth+1)
-			newVal := formatValue(node.NewValue, depth+1)
+			oldVal := formatValueStylish(node.OldValue, depth+1)
+			newVal := formatValueStylish(node.NewValue, depth+1)
 			builder.WriteString(fmt.Sprintf("%s- %s: %s\n", prefix, node.Key, oldVal))
 			builder.WriteString(fmt.Sprintf("%s+ %s: %s\n", prefix, node.Key, newVal))
 		}
@@ -39,7 +39,7 @@ func FormatStylish(nodes []DiffNode, depth int) string {
 	return builder.String()
 }
 
-func formatValue(v interface{}, depth int) string {
+func formatValueStylish(v interface{}, depth int) string {
 	switch val := v.(type) {
 	case map[string]interface{}:
 		if len(val) == 0 {
@@ -58,7 +58,7 @@ func formatValue(v interface{}, depth int) string {
 		var builder strings.Builder
 		builder.WriteString("{\n")
 		for _, k := range keys {
-			builder.WriteString(fmt.Sprintf("%s%s: %s\n", currentIndent, k, formatValue(val[k], depth+1)))
+			builder.WriteString(fmt.Sprintf("%s%s: %s\n", currentIndent, k, formatValueStylish(val[k], depth+1)))
 		}
 		builder.WriteString(bracketIndent + "}")
 		return builder.String()

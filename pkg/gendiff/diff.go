@@ -1,76 +1,63 @@
 package gendiff
 
-import "sort"
+import (
+	"code/pkg/gendiff/formatters"
+	"sort"
+)
 
-// DiffNode — структура для хранения разницы между ключами
-type DiffNode struct {
-	Key      string
-	Status   string // "nested", "added", "removed", "unchanged", "changed"
-	Value    interface{}
-	OldValue interface{}
-	NewValue interface{}
-	Children []DiffNode
+func BuildDiff(data1, data2 map[string]interface{}) []formatters.DiffNode {
+	keys := getSortedKeys(data1, data2)
+	var nodes []formatters.DiffNode
+
+	for _, key := range keys {
+		val1, ok1 := data1[key]
+		val2, ok2 := data2[key]
+
+		if ok1 && ok2 {
+			map1, isMap1 := val1.(map[string]interface{})
+			map2, isMap2 := val2.(map[string]interface{})
+
+			if isMap1 && isMap2 {
+				nodes = append(nodes, formatters.DiffNode{
+					Key:      key,
+					Status:   "nested",
+					Children: BuildDiff(map1, map2),
+				})
+			} else if val1 == val2 {
+				nodes = append(nodes, formatters.DiffNode{
+					Key:    key,
+					Status: "unchanged",
+					Value:  val1,
+				})
+			} else {
+				nodes = append(nodes, formatters.DiffNode{
+					Key:      key,
+					Status:   "changed",
+					OldValue: val1,
+					NewValue: val2,
+				})
+			}
+		} else if ok1 {
+			nodes = append(nodes, formatters.DiffNode{Key: key, Status: "removed", Value: val1})
+		} else {
+			nodes = append(nodes, formatters.DiffNode{Key: key, Status: "added", Value: val2})
+		}
+	}
+	return nodes
 }
 
-// BuildDiff строит дерево различий
-func BuildDiff(data1, data2 map[string]interface{}) []DiffNode {
-	keysMap := make(map[string]struct{})
-	for k := range data1 {
-		keysMap[k] = struct{}{}
+func getSortedKeys(m1, m2 map[string]interface{}) []string {
+	keysMap := make(map[string]bool)
+	for k := range m1 {
+		keysMap[k] = true
 	}
-	for k := range data2 {
-		keysMap[k] = struct{}{}
+	for k := range m2 {
+		keysMap[k] = true
 	}
-
 	keys := make([]string, 0, len(keysMap))
 	for k := range keysMap {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
-
-	var diff []DiffNode
-	for _, k := range keys {
-		v1, ok1 := data1[k]
-		v2, ok2 := data2[k]
-
-		switch {
-		case ok1 && ok2:
-			m1, isMap1 := v1.(map[string]interface{})
-			m2, isMap2 := v2.(map[string]interface{})
-
-			if isMap1 && isMap2 {
-				diff = append(diff, DiffNode{
-					Key:      k,
-					Status:   "nested",
-					Children: BuildDiff(m1, m2),
-				})
-			} else if v1 == v2 {
-				diff = append(diff, DiffNode{
-					Key:    k,
-					Status: "unchanged",
-					Value:  v1,
-				})
-			} else {
-				diff = append(diff, DiffNode{
-					Key:      k,
-					Status:   "changed",
-					OldValue: v1,
-					NewValue: v2,
-				})
-			}
-		case ok1 && !ok2:
-			diff = append(diff, DiffNode{
-				Key:    k,
-				Status: "removed",
-				Value:  v1,
-			})
-		case !ok1 && ok2:
-			diff = append(diff, DiffNode{
-				Key:    k,
-				Status: "added",
-				Value:  v2,
-			})
-		}
-	}
-	return diff
+	return keys
 }
