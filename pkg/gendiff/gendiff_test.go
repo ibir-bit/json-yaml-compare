@@ -1,7 +1,6 @@
 package gendiff_test
 
 import (
-	"path/filepath"
 	"testing"
 
 	"code/pkg/gendiff"
@@ -11,9 +10,8 @@ import (
 )
 
 func TestGenDiffJSON(t *testing.T) {
-	// Пути к JSON фикстурам
-	file1 := filepath.Join("pkg", "gendiff", "testdata", "fixture", "file1.json")
-	file2 := filepath.Join("pkg", "gendiff", "testdata", "fixture", "file2.json")
+	file1 := "testdata/fixture/file1.json"
+	file2 := "testdata/fixture/file2.json"
 
 	data1, err := parser.ReadFile(file1)
 	assert.NoError(t, err)
@@ -36,9 +34,8 @@ func TestGenDiffJSON(t *testing.T) {
 }
 
 func TestGenDiffYAML(t *testing.T) {
-	// Пути к YAML фикстурам
-	file1 := filepath.Join("pkg", "gendiff", "testdata", "fixture", "file1.yml")
-	file2 := filepath.Join("pkg", "gendiff", "testdata", "fixture", "file2.yml")
+	file1 := "testdata/fixture/file1.yml"
+	file2 := "testdata/fixture/file2.yml"
 
 	data1, err := parser.ReadFile(file1)
 	assert.NoError(t, err)
