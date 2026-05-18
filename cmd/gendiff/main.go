@@ -19,7 +19,7 @@ func main() {
 			&cli.StringFlag{
 				Name:    "format",
 				Aliases: []string{"f"},
-				Value:   "stylish",
+				Value:   "stylish", // формат по умолчанию
 				Usage:   "output format",
 			},
 		},
@@ -30,7 +30,6 @@ func main() {
 
 			file1 := c.Args().Get(0)
 			file2 := c.Args().Get(1)
-			_ = c.String("format") // пока оставляем для будущего использования
 
 			// Чтение и парсинг файлов
 			data1, err := parser.ReadFile(file1)
@@ -43,8 +42,8 @@ func main() {
 				return cli.Exit(fmt.Sprintf("Failed to parse %s: %v", file2, err), 1)
 			}
 
-			// Генерация diff
-			diff := gendiff.GenDiff(data1, data2)
+			// Генерация рекурсивного diff с форматером stylish по умолчанию
+			diff := gendiff.GenDiffRecursive(data1, data2)
 
 			// Вывод результата
 			fmt.Println(diff)
