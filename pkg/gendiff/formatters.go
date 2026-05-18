@@ -9,7 +9,7 @@ import (
 // formatStylish форматирует diff в красивый стиль stylish
 func formatStylish(nodes []DiffNode, depth int) string {
 	indent := func(level int) string {
-		return strings.Repeat("    ", level)
+		return strings.Repeat("  ", level)
 	}
 
 	var formatValue func(v interface{}, depth int) string
@@ -27,12 +27,12 @@ func formatStylish(nodes []DiffNode, depth int) string {
 
 			result := "{\n"
 			for _, k := range keys {
-				result += fmt.Sprintf("%s    %s: %s\n", strings.Repeat("    ", depth), k, formatValue(val[k], depth+1))
+				result += fmt.Sprintf("%s%s: %s\n", indent(depth), k, formatValue(val[k], depth+1))
 			}
-			result += indent(depth) + "}"
+			result += indent(depth-1) + "}"
 			return result
 		case nil:
-			return "null"
+			return "<nil>"
 		default:
 			return fmt.Sprintf("%v", val)
 		}
@@ -42,16 +42,16 @@ func formatStylish(nodes []DiffNode, depth int) string {
 	for _, node := range nodes {
 		switch node.Status {
 		case "nested":
-			result += fmt.Sprintf("%s    %s: %s\n", indent(depth), node.Key, formatStylish(node.Children, depth+1))
+			result += fmt.Sprintf("%s%s: %s", indent(depth), node.Key, formatStylish(node.Children, depth+1))
 		case "unchanged":
-			result += fmt.Sprintf("%s    %s: %s\n", indent(depth), node.Key, formatValue(node.Value, depth+1))
+			result += fmt.Sprintf("%s%s: %s\n", indent(depth), node.Key, formatValue(node.Value, depth+1))
 		case "added":
-			result += fmt.Sprintf("%s  + %s: %s\n", indent(depth), node.Key, formatValue(node.Value, depth+1))
+			result += fmt.Sprintf("%s+ %s: %s\n", indent(depth-1), node.Key, formatValue(node.Value, depth))
 		case "removed":
-			result += fmt.Sprintf("%s  - %s: %s\n", indent(depth), node.Key, formatValue(node.Value, depth+1))
+			result += fmt.Sprintf("%s- %s: %s\n", indent(depth-1), node.Key, formatValue(node.Value, depth))
 		case "changed":
-			result += fmt.Sprintf("%s  - %s: %s\n", indent(depth), node.Key, formatValue(node.OldValue, depth+1))
-			result += fmt.Sprintf("%s  + %s: %s\n", indent(depth), node.Key, formatValue(node.NewValue, depth+1))
+			result += fmt.Sprintf("%s- %s: %s\n", indent(depth-1), node.Key, formatValue(node.OldValue, depth))
+			result += fmt.Sprintf("%s+ %s: %s\n", indent(depth-1), node.Key, formatValue(node.NewValue, depth))
 		}
 	}
 	result += indent(depth-1) + "}"
