@@ -2,18 +2,18 @@ package gendiff
 
 import "sort"
 
-// DiffNode — элемент внутреннего представления diff
+// DiffNode — структура для хранения разницы между ключами
 type DiffNode struct {
 	Key      string
-	Status   string      // added, removed, unchanged, changed, nested
-	Value    interface{} // для added/removed/unchanged
-	OldValue interface{} // для changed
-	NewValue interface{} // для changed
-	Children []DiffNode  // для nested
+	Status   string // "nested", "added", "removed", "unchanged", "changed"
+	Value    interface{}
+	OldValue interface{}
+	NewValue interface{}
+	Children []DiffNode
 }
 
-// buildDiff строит внутреннее дерево diff рекурсивно
-func buildDiff(data1, data2 map[string]interface{}) []DiffNode {
+// BuildDiff строит дерево различий
+func BuildDiff(data1, data2 map[string]interface{}) []DiffNode {
 	keysMap := make(map[string]struct{})
 	for k := range data1 {
 		keysMap[k] = struct{}{}
@@ -42,7 +42,7 @@ func buildDiff(data1, data2 map[string]interface{}) []DiffNode {
 				diff = append(diff, DiffNode{
 					Key:      k,
 					Status:   "nested",
-					Children: buildDiff(m1, m2),
+					Children: BuildDiff(m1, m2),
 				})
 			} else if v1 == v2 {
 				diff = append(diff, DiffNode{

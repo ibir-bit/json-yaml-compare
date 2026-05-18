@@ -1,7 +1,7 @@
 package gendiff
 
-// GenDiffRecursive — публичная функция для рекурсивного diff
+// GenDiffRecursive собирает всё воедино
 func GenDiffRecursive(data1, data2 map[string]interface{}) string {
-	diffTree := buildDiff(data1, data2)
-	return formatStylish(diffTree, 1)
+	diffTree := BuildDiff(data1, data2)
+	return FormatStylish(diffTree, 1)
 }
