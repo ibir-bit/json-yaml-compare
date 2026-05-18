@@ -1,3 +1,4 @@
+version: v1.64 # Добавьте эту строку первой
 run:
   tests: true
   timeout: 5m
@@ -11,7 +12,7 @@ linters:
     - gosimple
     - unused
   disable:
-    - typecheck  # Отключаем проверку типов
+    - typecheck
 
 issues:
   exclude-use-default: false
