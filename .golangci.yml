@@ -1,4 +1,4 @@
-version: v1.64 # Добавьте эту строку первой
+version: v2
 run:
   tests: true
   timeout: 5m
