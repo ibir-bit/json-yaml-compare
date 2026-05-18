@@ -6,54 +6,72 @@ import (
 	"strings"
 )
 
-// formatStylish форматирует diff в красивый стиль stylish
 func formatStylish(nodes []DiffNode, depth int) string {
-	indent := func(level int) string {
-		return strings.Repeat("  ", level)
-	}
+	indent := strings.Repeat("    ", depth-1)
 
-	var formatValue func(v interface{}, depth int) string
-	formatValue = func(v interface{}, depth int) string {
-		switch val := v.(type) {
+	var formatValue func(interface{}, int) string
+	formatValue = func(val interface{}, lvl int) string {
+		switch v := val.(type) {
 		case map[string]interface{}:
-			if len(val) == 0 {
+			if len(v) == 0 {
 				return "{}"
 			}
-			keys := make([]string, 0, len(val))
-			for k := range val {
+
+			lines := []string{"{"}
+			keys := make([]string, 0, len(v))
+			for k := range v {
 				keys = append(keys, k)
 			}
 			sort.Strings(keys)
 
-			result := "{\n"
 			for _, k := range keys {
-				result += fmt.Sprintf("%s%s: %s\n", indent(depth), k, formatValue(val[k], depth+1))
+				lines = append(lines, fmt.Sprintf(
+					"%s    %s: %s",
+					strings.Repeat("    ", lvl),
+					k,
+					formatValue(v[k], lvl+1),
+				))
 			}
-			result += indent(depth-1) + "}"
-			return result
+
+			lines = append(lines, fmt.Sprintf("%s}", strings.Repeat("    ", lvl-1)))
+			return strings.Join(lines, "\n")
 		case nil:
 			return "<nil>"
 		default:
-			return fmt.Sprintf("%v", val)
+			return fmt.Sprintf("%v", v)
 		}
 	}
 
-	result := "{\n"
+	lines := []string{"{"}
+
 	for _, node := range nodes {
 		switch node.Status {
 		case "nested":
-			result += fmt.Sprintf("%s%s: %s", indent(depth), node.Key, formatStylish(node.Children, depth+1))
+			lines = append(lines, fmt.Sprintf("%s    %s: %s",
+				indent, node.Key, formatStylish(node.Children, depth+1),
+			))
 		case "unchanged":
-			result += fmt.Sprintf("%s%s: %s\n", indent(depth), node.Key, formatValue(node.Value, depth+1))
+			lines = append(lines, fmt.Sprintf("%s    %s: %s",
+				indent, node.Key, formatValue(node.Value, depth+1),
+			))
 		case "added":
-			result += fmt.Sprintf("%s+ %s: %s\n", indent(depth-1), node.Key, formatValue(node.Value, depth))
+			lines = append(lines, fmt.Sprintf("%s  + %s: %s",
+				indent, node.Key, formatValue(node.Value, depth+1),
+			))
 		case "removed":
-			result += fmt.Sprintf("%s- %s: %s\n", indent(depth-1), node.Key, formatValue(node.Value, depth))
+			lines = append(lines, fmt.Sprintf("%s  - %s: %s",
+				indent, node.Key, formatValue(node.Value, depth+1),
+			))
 		case "changed":
-			result += fmt.Sprintf("%s- %s: %s\n", indent(depth-1), node.Key, formatValue(node.OldValue, depth))
-			result += fmt.Sprintf("%s+ %s: %s\n", indent(depth-1), node.Key, formatValue(node.NewValue, depth))
+			lines = append(lines, fmt.Sprintf("%s  - %s: %s",
+				indent, node.Key, formatValue(node.OldValue, depth+1),
+			))
+			lines = append(lines, fmt.Sprintf("%s  + %s: %s",
+				indent, node.Key, formatValue(node.NewValue, depth+1),
+			))
 		}
 	}
-	result += indent(depth-1) + "}"
-	return result
+
+	lines = append(lines, fmt.Sprintf("%s}", strings.Repeat("    ", depth-1)))
+	return strings.Join(lines, "\n")
 }
