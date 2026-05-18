@@ -11,28 +11,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # 1. Добавляем fetch-depth: 0 для корректной работы SonarCloud
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.24'  # ← ИЗМЕНИТЕ: 1.26.2 → 1.24 (такой версии нет)
+        go-version: '1.24'
 
-    # ✅ Скачиваем все зависимости проекта
     - name: Download dependencies
       run: go mod download
 
-    # ✅ Запуск golangci-lint через официальный Action
     - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v4  # ← ИЗМЕНИТЕ: v3 → v4
+      uses: golangci/golangci-lint-action@v4
       with:
-        version: latest  # ← ИЗМЕНИТЕ: v1.59.0 → latest
-        args: --timeout=5m  # ← ДОБАВЬТЕ эту строку
+        version: latest
+        args: --timeout=5m
 
-    # ✅ Сборка проекта
     - name: Build
       run: go build ./...
 
-    # ✅ Запуск тестов
+    # 2. Тесты должны генерировать покрытие (у тебя это уже есть)
     - name: Test
       run: go test ./... -v -coverprofile=coverage.out
+
+    # 3. ДОБАВЛЯЕМ ШАГ SONARCLOUD
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      with:
+        args: >
+          -Dsonar.go.coverage.reportPaths=coverage.out
