@@ -10,8 +10,8 @@ import (
 )
 
 func TestGenDiffNestedYAML(t *testing.T) {
-	file1 := "pkg/gendiff/testdata/fixture/file1.yml"
-	file2 := "pkg/gendiff/testdata/fixture/file2.yml"
+	file1 := "testdata/fixture/file1.yml"
+	file2 := "testdata/fixture/file2.yml"
 
 	data1, err := parser.ReadFile(file1)
 	assert.NoError(t, err)
