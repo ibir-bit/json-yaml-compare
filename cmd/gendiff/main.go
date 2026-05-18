@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"code/pkg/gendiff"
-	"code/pkg/parser"
+	// Парсер больше не нужен напрямую в main.go, так как GenDiff парсит сам
 
 	"github.com/urfave/cli/v2"
 )
@@ -15,7 +15,6 @@ func main() {
 	app := &cli.App{
 		Name:  "gendiff",
 		Usage: "Compares two configuration files and shows a difference.",
-		// 1. Добавляем поддержку флага --format (по умолчанию "stylish")
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "format",
@@ -29,21 +28,15 @@ func main() {
 				return cli.Exit("Usage: gendiff <file1> <file2>", 1)
 			}
 
-			// Читаем файлы
-			data1, err := parser.ReadFile(c.Args().Get(0))
-			if err != nil {
-				return err
-			}
-			data2, err := parser.ReadFile(c.Args().Get(1))
-			if err != nil {
-				return err
-			}
+			// Получаем пути к файлам из аргументов
+			path1 := c.Args().Get(0)
+			path2 := c.Args().Get(1)
 
-			// 2. Получаем значение флага --format
+			// Получаем значение флага --format
 			format := c.String("format")
 
-			// 3. Передаем data1, data2 и format в GenDiff
-			result, err := gendiff.GenDiff(data1, data2, format)
+			// ПЕРЕДАЕМ ПУТИ (path1, path2), а не распарсенные данные
+			result, err := gendiff.GenDiff(path1, path2, format)
 			if err != nil {
 				return err
 			}
