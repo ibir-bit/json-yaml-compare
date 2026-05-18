@@ -17,6 +17,8 @@ func Format(nodes []DiffNode, formatName string) (string, error) {
 		return FormatStylish(nodes, 1), nil
 	case "plain":
 		return FormatPlain(nodes, ""), nil
+	case "json":
+		return FormatJSON(nodes) // Добавили вызов JSON-форматера
 	default:
 		return "", fmt.Errorf("unknown format: %s", formatName)
 	}
