@@ -63,7 +63,7 @@ func formatValueStylish(v interface{}, depth int) string {
 		builder.WriteString(bracketIndent + "}")
 		return builder.String()
 	case nil:
-		return "<nil>"
+		return "null"
 	case string:
 		return val
 	default:

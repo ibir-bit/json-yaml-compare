@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"code/pkg/gendiff"
-	// Парсер больше не нужен напрямую в main.go, так как GenDiff парсит сам
 
 	"github.com/urfave/cli/v2"
 )
@@ -28,14 +27,11 @@ func main() {
 				return cli.Exit("Usage: gendiff <file1> <file2>", 1)
 			}
 
-			// Получаем пути к файлам из аргументов
 			path1 := c.Args().Get(0)
 			path2 := c.Args().Get(1)
-
-			// Получаем значение флага --format
 			format := c.String("format")
 
-			// ПЕРЕДАЕМ ПУТИ (path1, path2), а не распарсенные данные
+			// Передаем только пути
 			result, err := gendiff.GenDiff(path1, path2, format)
 			if err != nil {
 				return err
