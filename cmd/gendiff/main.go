@@ -6,6 +6,15 @@ import (
 	"strings"
 )
 
+type DiffNode struct {
+	Key      string
+	Status   string      // "nested", "added", "removed", "unchanged", "changed"
+	Value    interface{} // для "added" и "unchanged"
+	OldValue interface{} // для "changed" и "removed"
+	NewValue interface{} // для "changed" и "added"
+	Children []DiffNode  // для "nested"
+}
+
 // formatStylish возвращает diff в стиле stylish
 func formatStylish(nodes []DiffNode, depth int) string {
 	indent := strings.Repeat("    ", depth-1) // 4 пробела на уровень
