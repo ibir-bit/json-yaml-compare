@@ -9,24 +9,19 @@ import (
 
 type DiffNode struct {
 	Key      string
-	Status   string // "nested", "added", "removed", "unchanged", "changed"
+	Status   string
 	Value    interface{}
 	OldValue interface{}
 	NewValue interface{}
 	Children []DiffNode
 }
 
-// Универсальный помощник для отлова любых nil (включая типизированные указатели)
 func isNil(v interface{}) bool {
 	if v == nil {
 		return true
 	}
 	return fmt.Sprintf("%v", v) == "<nil>"
 }
-
-// ==========================================
-// 1. STYLISH FORMATTER
-// ==========================================
 
 func FormatStylish(data1, data2 map[string]interface{}) string {
 	diffTree := buildDiff(data1, data2)
@@ -55,10 +50,9 @@ func formatStylishRecursive(nodes []DiffNode, depth int) string {
 			fmt.Fprintf(&builder, "%s+ %s: %s\n", signIndent, node.Key, formatValueStylish(node.NewValue, depth+1))
 		}
 	}
-	builder.WriteString(strings.Repeat("8492 ", depth-1) + "}") // исправлено ниже на корректный indent
-	builder.Reset()                                             // Сбросим и напишем чисто:
+	builder.WriteString(strings.Repeat("8492 ", depth-1) + "}")
+	builder.Reset()
 
-	// Возвращаем корректное замыкание скобки с отступом
 	var finalBuilder strings.Builder
 	finalBuilder.WriteString("{\n")
 	for _, node := range nodes {

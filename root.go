@@ -6,12 +6,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"code/pkg/gendiff" // Ваш пакет с логикой сравнения
+	"code/pkg/gendiff"
 
 	"gopkg.in/yaml.v3"
 )
 
-// GenDiff — API для тестов Хекслета
 func GenDiff(path1, path2 string, format string) (string, error) {
 	data1, err := readAndParse(path1)
 	if err != nil {
@@ -23,7 +22,6 @@ func GenDiff(path1, path2 string, format string) (string, error) {
 		return "", err
 	}
 
-	// Выбираем формат вывода
 	switch format {
 	case "plain":
 		return gendiff.FormatPlain(data1, data2), nil
@@ -36,7 +34,6 @@ func GenDiff(path1, path2 string, format string) (string, error) {
 	}
 }
 
-// readAndParse — теперь умеет работать и с JSON, и с YAML
 func readAndParse(path string) (map[string]interface{}, error) {
 	content, err := os.ReadFile(path)
 	if err != nil {
