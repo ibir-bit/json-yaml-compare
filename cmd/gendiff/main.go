@@ -1,26 +1,32 @@
 package main
 
 import (
-	"code" // Импорт нашего корневого пакета
 	"flag"
 	"fmt"
 	"os"
+
+	// Замени "ваше_имя_модуля" на то, что написано у тебя в файле go.mod
+	"code/internal/gendiff"
 )
 
 func main() {
-	format := flag.String("format", "stylish", "set format of output")
+	format := flag.String("format", "stylish", "output format [stylish, plain, json]")
 	flag.Parse()
 
 	if flag.NArg() < 2 {
-		fmt.Println("Usage: gendiff [-format <format>] <firstConfig> <secondConfig>")
+		fmt.Println("Usage: gendiff [--format <format>] <file1> <file2>")
 		os.Exit(1)
 	}
 
-	diff, err := code.GenDiff(flag.Arg(0), flag.Arg(1), *format)
+	file1 := flag.Arg(0)
+	file2 := flag.Arg(1)
+
+	// Вызываем объединенную функцию
+	result, err := gendiff.GenDiff(file1, file2, *format)
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Println(diff)
+	fmt.Println(result)
 }
