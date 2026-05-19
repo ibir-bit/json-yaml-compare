@@ -30,14 +30,12 @@ func ReadFile(path string) (map[string]interface{}, error) {
 			return nil, fmt.Errorf("cannot parse JSON: %w", err)
 		}
 		return result, nil
-
 	case ".yml", ".yaml":
 		var result map[string]interface{}
 		if err := yaml.Unmarshal(data, &result); err != nil {
 			return nil, fmt.Errorf("cannot parse YAML: %w", err)
 		}
 		return result, nil
-
 	default:
 		return nil, fmt.Errorf("unsupported file extension: %s", ext)
 	}
