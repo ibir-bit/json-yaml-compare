@@ -1,17 +1,16 @@
 package code
 
 import (
-	"code/pkg/gendiff" // Убедитесь, что здесь ваш правильный импорт пакета
+	"code/pkg/gendiff"
+	"os"
+
+	"gopkg.in/yaml.v3"
 )
 
-// GenDiff читает два файла, сравнивает их и возвращает результат в виде строки.
-// Именно эту функцию ищут тесты Хекслета.
-// Добавьте третий параметр 'format'
+// GenDiff — это функция, которую вызывают тесты Хекслета
 func GenDiff(path1, path2 string, format string) (string, error) {
-	// Временно игнорируем формат, если он еще не реализован в логике
-	_ = format
+	_ = format // пока не используем
 
-	// 1. Читаем и парсим файлы (код, который вы уже написали)
 	data1, err := readAndParse(path1)
 	if err != nil {
 		return "", err
@@ -22,8 +21,21 @@ func GenDiff(path1, path2 string, format string) (string, error) {
 		return "", err
 	}
 
-	// 2. Вызываем основную логику
-	diff := gendiff.GenDiffRecursive(data1, data2)
+	return gendiff.GenDiffRecursive(data1, data2), nil
+}
 
-	return diff, nil
+// Перенесли сюда, чтобы линтер видел её из пакета code
+func readAndParse(filepath string) (map[string]interface{}, error) {
+	content, err := os.ReadFile(filepath)
+	if err != nil {
+		return nil, err
+	}
+
+	var data map[string]interface{}
+	err = yaml.Unmarshal(content, &data)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
