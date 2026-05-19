@@ -49,7 +49,7 @@ func main() {
 	fmt.Println(diff)
 }
 
-// readAndParse — вспомогательная функция для чтения файла и парсинга YAML
+// readAndParse — вспомогательная функция для чтения файла и парсинга YAML11
 func readAndParse(filepath string) (map[string]interface{}, error) {
 	content, err := os.ReadFile(filepath)
 	if err != nil {
