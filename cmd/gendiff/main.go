@@ -1,7 +1,7 @@
 package main
 
 import (
-	"code" // Импортируем наш корневой пакет
+	"code" // Импорт нашего корневого пакета
 	"flag"
 	"fmt"
 	"os"
@@ -16,7 +16,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Вызываем API из корня
 	diff, err := code.GenDiff(flag.Arg(0), flag.Arg(1), *format)
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)

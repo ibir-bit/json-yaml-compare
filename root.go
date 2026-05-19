@@ -1,16 +1,18 @@
 package code
 
 import (
-	"code/pkg/gendiff"
+	"encoding/json"
 	"os"
+	"path/filepath"
+	"strings"
+
+	"code/pkg/gendiff" // Ваш пакет с логикой сравнения
 
 	"gopkg.in/yaml.v3"
 )
 
-// GenDiff — это функция, которую вызывают тесты Хекслета
+// GenDiff — API для тестов Хекслета
 func GenDiff(path1, path2 string, format string) (string, error) {
-	_ = format // пока не используем
-
 	data1, err := readAndParse(path1)
 	if err != nil {
 		return "", err
@@ -21,21 +23,33 @@ func GenDiff(path1, path2 string, format string) (string, error) {
 		return "", err
 	}
 
-	return gendiff.GenDiffRecursive(data1, data2), nil
+	// Выбираем формат вывода
+	switch format {
+	case "plain":
+		return gendiff.FormatPlain(data1, data2), nil
+	case "json":
+		return gendiff.FormatJSON(data1, data2), nil
+	case "stylish":
+		fallthrough
+	default:
+		return gendiff.FormatStylish(data1, data2), nil
+	}
 }
 
-// Перенесли сюда, чтобы линтер видел её из пакета code
-func readAndParse(filepath string) (map[string]interface{}, error) {
-	content, err := os.ReadFile(filepath)
+// readAndParse — теперь умеет работать и с JSON, и с YAML
+func readAndParse(path string) (map[string]interface{}, error) {
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
-	var data map[string]interface{}
-	err = yaml.Unmarshal(content, &data)
-	if err != nil {
-		return nil, err
-	}
+	ext := strings.ToLower(filepath.Ext(path))
+	result := make(map[string]interface{})
 
-	return data, nil
+	if ext == ".json" {
+		err = json.Unmarshal(content, &result)
+	} else {
+		err = yaml.Unmarshal(content, &result)
+	}
+	return result, err
 }
