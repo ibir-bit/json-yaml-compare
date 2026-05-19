@@ -144,9 +144,36 @@ func formatValuePlain(v interface{}) string {
 // 3. JSON FORMATTER
 // ==========================================
 
+// treeToMap рекурсивно переводит слайс узлов в map, чтобы JSON начинался с объекта {...}
+func treeToMap(nodes []DiffNode) map[string]interface{} {
+	result := make(map[string]interface{})
+	for _, node := range nodes {
+		nodeData := make(map[string]interface{})
+		nodeData["status"] = node.Status
+
+		switch node.Status {
+		case "nested":
+			nodeData["children"] = treeToMap(node.Children)
+		case "changed":
+			nodeData["oldValue"] = node.OldValue
+			nodeData["newValue"] = node.NewValue
+		default: // "added", "removed", "unchanged"
+			nodeData["value"] = node.Value
+		}
+
+		result[node.Key] = nodeData
+	}
+	return result
+}
+
 func FormatJSON(data1, data2 map[string]interface{}) string {
 	diffTree := buildDiff(data1, data2)
-	bytes, err := json.Marshal(diffTree)
+
+	// Превращаем массив в мапу
+	mappedTree := treeToMap(diffTree)
+
+	// В Go json.Marshal автоматически сортирует ключи мапы по алфавиту
+	bytes, err := json.Marshal(mappedTree)
 	if err != nil {
 		return "{}"
 	}
