@@ -1,4 +1,4 @@
-module code
+module github.com/user/gendiff
 
 go 1.24
 

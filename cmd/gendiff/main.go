@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	// Замени "ваше_имя_модуля" на то, что написано у тебя в файле go.mod
-	"code/internal/gendiff"
+	"github.com/user/gendiff/internal/gendiff"
 )
 
 func main() {
@@ -21,7 +20,6 @@ func main() {
 	file1 := flag.Arg(0)
 	file2 := flag.Arg(1)
 
-	// Вызываем объединенную функцию
 	result, err := gendiff.GenDiff(file1, file2, *format)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
