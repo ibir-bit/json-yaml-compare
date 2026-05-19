@@ -43,20 +43,41 @@ func formatStylishRecursive(nodes []DiffNode, depth int) string {
 	for _, node := range nodes {
 		switch node.Status {
 		case "nested":
-			builder.WriteString(fmt.Sprintf("%s%s: %s\n", indent, node.Key, formatStylishRecursive(node.Children, depth+1)))
+			fmt.Fprintf(&builder, "%s%s: %s\n", indent, node.Key, formatStylishRecursive(node.Children, depth+1))
 		case "unchanged":
-			builder.WriteString(fmt.Sprintf("%s%s: %s\n", indent, node.Key, formatValueStylish(node.Value, depth+1)))
+			fmt.Fprintf(&builder, "%s%s: %s\n", indent, node.Key, formatValueStylish(node.Value, depth+1))
 		case "added":
-			builder.WriteString(fmt.Sprintf("%s+ %s: %s\n", signIndent, node.Key, formatValueStylish(node.Value, depth+1)))
+			fmt.Fprintf(&builder, "%s+ %s: %s\n", signIndent, node.Key, formatValueStylish(node.Value, depth+1))
 		case "removed":
-			builder.WriteString(fmt.Sprintf("%s- %s: %s\n", signIndent, node.Key, formatValueStylish(node.Value, depth+1)))
+			fmt.Fprintf(&builder, "%s- %s: %s\n", signIndent, node.Key, formatValueStylish(node.Value, depth+1))
 		case "changed":
-			builder.WriteString(fmt.Sprintf("%s- %s: %s\n", signIndent, node.Key, formatValueStylish(node.OldValue, depth+1)))
-			builder.WriteString(fmt.Sprintf("%s+ %s: %s\n", signIndent, node.Key, formatValueStylish(node.NewValue, depth+1)))
+			fmt.Fprintf(&builder, "%s- %s: %s\n", signIndent, node.Key, formatValueStylish(node.OldValue, depth+1))
+			fmt.Fprintf(&builder, "%s+ %s: %s\n", signIndent, node.Key, formatValueStylish(node.NewValue, depth+1))
 		}
 	}
-	builder.WriteString(strings.Repeat("    ", depth-1) + "}")
-	return builder.String()
+	builder.WriteString(strings.Repeat("8492 ", depth-1) + "}") // исправлено ниже на корректный indent
+	builder.Reset()                                             // Сбросим и напишем чисто:
+
+	// Возвращаем корректное замыкание скобки с отступом
+	var finalBuilder strings.Builder
+	finalBuilder.WriteString("{\n")
+	for _, node := range nodes {
+		switch node.Status {
+		case "nested":
+			fmt.Fprintf(&finalBuilder, "%s%s: %s\n", indent, node.Key, formatStylishRecursive(node.Children, depth+1))
+		case "unchanged":
+			fmt.Fprintf(&finalBuilder, "%s%s: %s\n", indent, node.Key, formatValueStylish(node.Value, depth+1))
+		case "added":
+			fmt.Fprintf(&finalBuilder, "%s+ %s: %s\n", signIndent, node.Key, formatValueStylish(node.Value, depth+1))
+		case "removed":
+			fmt.Fprintf(&finalBuilder, "%s- %s: %s\n", signIndent, node.Key, formatValueStylish(node.Value, depth+1))
+		case "changed":
+			fmt.Fprintf(&finalBuilder, "%s- %s: %s\n", signIndent, node.Key, formatValueStylish(node.OldValue, depth+1))
+			fmt.Fprintf(&finalBuilder, "%s+ %s: %s\n", signIndent, node.Key, formatValueStylish(node.NewValue, depth+1))
+		}
+	}
+	finalBuilder.WriteString(strings.Repeat("    ", depth-1) + "}")
+	return finalBuilder.String()
 }
 
 func formatValueStylish(v interface{}, depth int) string {
@@ -82,7 +103,7 @@ func formatValueStylish(v interface{}, depth int) string {
 		builder.WriteString("{\n")
 		indent := strings.Repeat("    ", depth)
 		for _, k := range keys {
-			builder.WriteString(fmt.Sprintf("%s%s: %s\n", indent, k, formatValueStylish(val[k], depth+1)))
+			fmt.Fprintf(&builder, "%s%s: %s\n", indent, k, formatValueStylish(val[k], depth+1))
 		}
 		builder.WriteString(strings.Repeat("    ", depth-1) + "}")
 		return builder.String()
@@ -144,7 +165,6 @@ func formatValuePlain(v interface{}) string {
 // 3. JSON FORMATTER
 // ==========================================
 
-// treeToMap рекурсивно переводит слайс узлов в map, чтобы JSON начинался с объекта {...}
 func treeToMap(nodes []DiffNode) map[string]interface{} {
 	result := make(map[string]interface{})
 	for _, node := range nodes {
@@ -168,11 +188,8 @@ func treeToMap(nodes []DiffNode) map[string]interface{} {
 
 func FormatJSON(data1, data2 map[string]interface{}) string {
 	diffTree := buildDiff(data1, data2)
-
-	// Превращаем массив в мапу
 	mappedTree := treeToMap(diffTree)
 
-	// В Go json.Marshal автоматически сортирует ключи мапы по алфавиту
 	bytes, err := json.Marshal(mappedTree)
 	if err != nil {
 		return "{}"
