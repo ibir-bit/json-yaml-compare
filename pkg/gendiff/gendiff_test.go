@@ -1,7 +1,7 @@
 package gendiff_test
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"code/pkg/gendiff"
@@ -14,7 +14,7 @@ import (
 // readYAML читает YAML-файл и возвращает map[string]interface{}
 func readYAML(filePath string) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
-	content, err := ioutil.ReadFile(filePath)
+	content, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}
