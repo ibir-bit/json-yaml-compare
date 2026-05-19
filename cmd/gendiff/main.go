@@ -32,7 +32,7 @@ func main() {
 			format := c.String("format")
 
 			// Передаем только пути
-			result, err := gendiff.GenDiff(path1, path2, format)
+			result, err := gendiff.GenDiffRecursive(data1, data2)
 			if err != nil {
 				return err
 			}
