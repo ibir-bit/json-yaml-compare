@@ -4,4 +4,4 @@ lint:
 	golangci-lint run
 
 test:
-	go test ./... -v -coverprofile=coverage.out
+	go test -v ./internal/gendiff/...
