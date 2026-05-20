@@ -1,4 +1,4 @@
-package gendiff
+package code
 
 import (
 	"encoding/json"
