@@ -65,10 +65,9 @@ func isNil(v interface{}) bool {
 	return v == nil
 }
 
+// ИСПРАВЛЕНО: Теперь функция всегда оставляет пробел после двоеточия,
+// даже если value - это пустая строка. Это решит проблему с тестами.
 func formatLine(prefix, key, value string) string {
-	if value == "" {
-		return fmt.Sprintf("%s%s:\n", prefix, key)
-	}
 	return fmt.Sprintf("%s%s: %s\n", prefix, key, value)
 }
 
@@ -126,7 +125,6 @@ func formatValueStylish(v interface{}, depth int) string {
 		builder.WriteString("{\n")
 		indent := strings.Repeat("    ", depth)
 		for _, k := range keys {
-			// Используем ту же функцию сборки строки, чтобы убрать проблему и во вложенных словарях
 			builder.WriteString(formatLine(indent, k, formatValueStylish(val[k], depth+1)))
 		}
 		builder.WriteString(strings.Repeat("    ", depth-1) + "}")
