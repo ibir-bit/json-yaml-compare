@@ -1,4 +1,4 @@
-package gendiff // Тоже gendiff, чтобы находиться в одном пакете
+package gendiff
 
 import (
 	"os"
@@ -60,8 +60,6 @@ func TestGenDiff(t *testing.T) {
 			expectedBytes, err := os.ReadFile(tt.expectedFile)
 			require.NoError(t, err, "Failed to read expected file")
 			expected := string(expectedBytes)
-
-			// Вызываем функцию напрямую, без префиксов пакета
 			actual, err := GenDiff(tt.file1, tt.file2, tt.format)
 
 			require.NoError(t, err, "GenDiff returned an error")
